@@ -1,5 +1,5 @@
 /* If true, add many trace */
-var DEBUG = true;
+var DEBUG = false;
 
 /* External dependencies */
 var fs = require('fs'),

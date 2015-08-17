@@ -106,13 +106,16 @@ function getServer(msg) {
     async: true,
     defs: loadLibs(msg.data.payload.config.libs),
     plugins: loadPlugins(msg.data.payload.config.plugins),
-    getFile: function(x, cb) {
-      var path = x;
+    getFile: function(name, cb) {
+      var path = name;
       if (!isWin && path && path[0] !== '/') {
-        path = '/' + x;
+        path = '/' + name;
       }
-      _log(logLevel.INFO, "Attempting to load file", path);
-      fs.readFile(path, {encoding: 'utf8'}, cb);
+      //_log(logLevel.INFO, "Attempting to load file", path);
+      fs.readFile(path, {encoding: 'utf8'}, function(err, data) {
+        //_log(logLevel.INFO, "Attempting to load content", data);
+        cb(err, data);
+      });
     }
   });
   return server;
@@ -155,12 +158,16 @@ function processMessage(msg) {
 }
 
 function processRequest(srv, msg, data) {
-  _log(logLevel.INFO, 'Received message', data.payload);
-  srv.request(data.payload, function(err, out) {
-    _log(logLevel.INFO, 'Sending message', out);
-    send(err, out, msg);
-  });
-  _log(logLevel.INFO, 'Server files', srv.files.map(function(x) { return x.name; }));
+  if(data.payload) {
+    if(data.payload.query) {
+      _log(logLevel.INFO, 'Received message', data.payload.query.type);
+    }
+    srv.request(data.payload, function(err, out) {
+      _log(logLevel.INFO, 'Sending message', err || out);
+      send(err, out, msg);
+    });
+    //_log(logLevel.INFO, 'Server files', srv.files.map(function(x) { return x.name; }));
+  }
 }
 
 function processAddFiles(srv, msg, data) {
@@ -184,4 +191,5 @@ function processInit(srv, msg, data) {
 
 function closeTernProcess() {
   process.exit();
+
 }
